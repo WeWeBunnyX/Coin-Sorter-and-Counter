@@ -6,7 +6,6 @@ void setup() {
 }
 
 void loop() {
-  // Turn the LED on
   digitalWrite(LED_PIN, HIGH);
   delay(100); 
 
