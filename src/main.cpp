@@ -4,75 +4,87 @@
 
 LCDI2C_Latin lcd(0x27, 16, 2);
 
-const int sensor1DigitalPin = 12;
-const int sensor1AnalogPin = A0;
+const int sensorDigitalPins[] = {12, 11, 3, 8};
+const int sensorAnalogPins[] = {A0, A1, A2, A3};
+const int numSensors = 4;
 
-const int sensor2DigitalPin = 11;
-const int sensor2AnalogPin = A1;
+volatile int count = 0; 
+volatile unsigned long lastDetectionTime = 0;
+const unsigned long debounceDelay = 10; // Reduced debounce delay for faster detection
 
-const int sensor3DigitalPin = 3;
-const int sensor3AnalogPin = A2;
+void countObject() {
+  unsigned long currentTime = millis();
+  if (currentTime - lastDetectionTime > debounceDelay) {
+    count++;
+    lastDetectionTime = currentTime;
+  }
+}
 
-const int sensor4DigitalPin = 8;
-const int sensor4AnalogPin = A3;
+void initializeLCD() {
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Count:");
+}
+
+void initializeSensors() {
+  for (int i = 0; i < numSensors; i++) {
+    pinMode(sensorDigitalPins[i], INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[i]), countObject, FALLING);
+  }
+}
+
+void updateLCD() {
+  lcd.setCursor(6, 0);
+  lcd.print("    ");
+  lcd.setCursor(6, 0);
+  lcd.print(count);
+}
+
+void checkAnalogSensors() {
+  int sensor1AnalogValue = analogRead(sensorAnalogPins[0]);          // Sensor 1 
+  if (sensor1AnalogValue < 660) {
+    count++;
+    updateLCD();
+    delay(10); // Small delay to avoid multiple increments for the same detection
+  }
+
+  int sensor2AnalogValue = analogRead(sensorAnalogPins[1]);            //Sensor 2
+  if (sensor2AnalogValue < 690) {
+    count++;
+    updateLCD();
+    delay(10); // Small delay to avoid multiple increments for the same detection
+  }
+}
+
+void printSensorStates() {
+  Serial.print("\r"); 
+  for (int i = 0; i < numSensors; i++) {
+    int sensorDigitalValue = digitalRead(sensorDigitalPins[i]);
+    int sensorAnalogValue = analogRead(sensorAnalogPins[i]);
+  
+    Serial.print("Sensor ");
+    Serial.print(i + 1);
+    Serial.print(" - D: ");
+    Serial.print(sensorDigitalValue);
+    Serial.print(", A: ");
+    Serial.print(sensorAnalogValue);
+    Serial.print(" | ");
+  }
+  Serial.print("Count: ");
+  Serial.print(count);
+}
 
 void setup() {
-  lcd.init();      
-  lcd.backlight();  
-
-  lcd.clear();   
-  lcd.setCursor(0, 0);  
-  lcd.print("12345");   
-
+  initializeLCD();
   Serial.begin(9600);
-
-  pinMode(sensor1DigitalPin, INPUT);
-  pinMode(sensor1AnalogPin, INPUT);
-
-  pinMode(sensor2DigitalPin, INPUT);
-  pinMode(sensor2AnalogPin, INPUT);
-
-  pinMode(sensor3DigitalPin, INPUT);
-  pinMode(sensor3AnalogPin, INPUT);
-
-  pinMode(sensor4DigitalPin, INPUT);
-  pinMode(sensor4AnalogPin, INPUT);
+  initializeSensors();
 }
 
 void loop() {
-  // Read sensor values
-  int sensor1DigitalValue = digitalRead(sensor1DigitalPin);
-  int sensor1AnalogValue = analogRead(sensor1AnalogPin);
-
-  int sensor2DigitalValue = digitalRead(sensor2DigitalPin);
-  int sensor2AnalogValue = analogRead(sensor2AnalogPin);
-
-  int sensor3DigitalValue = digitalRead(sensor3DigitalPin);
-  int sensor3AnalogValue = analogRead(sensor3AnalogPin);
-
-  int sensor4DigitalValue = digitalRead(sensor4DigitalPin);
-  int sensor4AnalogValue = analogRead(sensor4AnalogPin);
-
- 
-  Serial.print("Sensor 1 - D: ");
-  Serial.print(sensor1DigitalValue);
-  Serial.print(", A: ");
-  Serial.print(sensor1AnalogValue);
-  Serial.print(" | Sensor 2 - D: ");
-  Serial.print(sensor2DigitalValue);
-  Serial.print(", A: ");
-  Serial.print(sensor2AnalogValue);
-  Serial.print(" | Sensor 3 - D: ");
-  Serial.print(sensor3DigitalValue);
-  Serial.print(", A: ");
-  Serial.print(sensor3AnalogValue);
-  Serial.print(" | Sensor 4 - D: ");
-  Serial.print(sensor4DigitalValue);
-  Serial.print(", A: ");
-  Serial.print(sensor4AnalogValue);
-  Serial.print("\r");  
-
-  delay(1000);  
+  updateLCD();
+  checkAnalogSensors();
+  printSensorStates();
+  delay(1); // Small delay for display updates
 }
-
-
