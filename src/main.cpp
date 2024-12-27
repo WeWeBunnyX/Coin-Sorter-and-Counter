@@ -10,7 +10,7 @@ const int numSensors = 4;
 
 volatile int count = 0; 
 volatile unsigned long lastDetectionTime = 0;
-const unsigned long debounceDelay = 10; // Reduced debounce delay for faster detection
+const unsigned long debounceDelay = 5; // Reduced debounce delay for faster detection
 
 void countObject() {
   unsigned long currentTime = millis();
@@ -44,7 +44,7 @@ void updateLCD() {
 
 void checkAnalogSensors() {
   int sensor1AnalogValue = analogRead(sensorAnalogPins[0]);          // Sensor 1 
-  if (sensor1AnalogValue < 660) {
+  if (sensor1AnalogValue < 696) {
     count++;
     updateLCD();
     delay(10); // Small delay to avoid multiple increments for the same detection
