@@ -75,5 +75,5 @@ void loop() {
   updateLCD();
   checkDigitalSensors();
   printSensorStates();
-  delay(1); // Small delay for display updates
+  delay(0.5); // Small delay for display updates
 }
