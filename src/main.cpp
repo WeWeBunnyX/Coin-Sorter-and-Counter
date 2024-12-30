@@ -9,14 +9,15 @@ const int numSensors = 4;
 
 volatile int count = 0; 
 volatile unsigned long lastDetectionTime = 0;
-const unsigned long debounceDelay = 0.1; // Reduced debounce delay for faster detection
+const unsigned long debounceDelay = 50; // Increased debounce delay for better detection
 
 void countObject() {
   unsigned long currentTime = millis();
+  // Only register if debounce time has passed
   if (currentTime - lastDetectionTime > debounceDelay) {
-	count++;
-	lastDetectionTime = currentTime;
-  }//
+    count++;
+    lastDetectionTime = currentTime;
+  }
 }
 
 void initializeLCD() {
@@ -30,7 +31,7 @@ void initializeLCD() {
 void initializeSensors() {
   for (int i = 0; i < numSensors; i++) {
     pinMode(sensorDigitalPins[i], INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[i]), countObject, FALLING);
+    attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[i]), countObject, FALLING); // Trigger on falling edge
   }
 }
 
@@ -63,6 +64,7 @@ void printSensorStates() {
   }
   Serial.print("Count: ");
   Serial.print(count);
+  //delay(1); 
 }
 
 void setup() {
@@ -75,5 +77,5 @@ void loop() {
   updateLCD();
   checkDigitalSensors();
   printSensorStates();
-  delay(0.5); // Small delay for display updates
+  // Removed delay for better response
 }
