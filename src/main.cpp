@@ -10,13 +10,15 @@ const int numSensors = 4;
 
 volatile int count = 0; 
 volatile unsigned long lastDetectionTime = 0;
-const unsigned long debounceDelay = 5; // Reduced debounce delay for faster detection
+const unsigned long debounceDelay = 0.5; // Reduced debounce delay for faster detection
 
 void countObject() {
   unsigned long currentTime = millis();
   if (currentTime - lastDetectionTime > debounceDelay) {
     count++;
     lastDetectionTime = currentTime;
+    Serial.print("Count: ");
+    Serial.println(count);
   }
 }
 
@@ -44,14 +46,14 @@ void updateLCD() {
 
 void checkAnalogSensors() {
   int sensor1AnalogValue = analogRead(sensorAnalogPins[0]);          // Sensor 1 
-  if (sensor1AnalogValue < 696) {
+  if (sensor1AnalogValue < 610) {
     count++;
     updateLCD();
     delay(10); // Small delay to avoid multiple increments for the same detection
   }
 
   int sensor2AnalogValue = analogRead(sensorAnalogPins[1]);            //Sensor 2
-  if (sensor2AnalogValue < 690) {
+  if (sensor2AnalogValue < 580) {
     count++;
     updateLCD();
     delay(10); // Small delay to avoid multiple increments for the same detection
