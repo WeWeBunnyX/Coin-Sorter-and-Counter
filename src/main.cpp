@@ -16,7 +16,7 @@ void countObject() {
   if (currentTime - lastDetectionTime > debounceDelay) {
 	count++;
 	lastDetectionTime = currentTime;
-  }
+  }//
 }
 
 void initializeLCD() {
