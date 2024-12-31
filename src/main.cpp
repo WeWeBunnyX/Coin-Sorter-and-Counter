@@ -9,7 +9,10 @@ const int numSensors = 4;
 
 volatile int count = 0; 
 volatile unsigned long lastDetectionTime = 0;
-const unsigned long debounceDelay = 50; // Increased debounce delay for better detection
+const unsigned long debounceDelay = 40; // Increased debounce delay for better detection
+
+volatile int totalPKR = 0; 
+volatile int oddCount = 0; 
 
 void countObject()
  {
@@ -21,6 +24,38 @@ void countObject()
   }
 }
 
+void count5PKRCoin() {
+  unsigned long currentTime = millis();
+  if (currentTime - lastDetectionTime > debounceDelay) {
+    totalPKR += 5;
+    lastDetectionTime = currentTime;
+  }
+}
+
+void count2PKRCoin() {
+  unsigned long currentTime = millis();
+  if (currentTime - lastDetectionTime > debounceDelay) {
+    totalPKR += 2;
+    lastDetectionTime = currentTime;
+  }
+}
+
+void count10PKRCoin() {
+  unsigned long currentTime = millis();
+  if (currentTime - lastDetectionTime > debounceDelay) {
+    totalPKR += 10;
+    lastDetectionTime = currentTime;
+  }
+}
+
+void countOddCoin() {
+  unsigned long currentTime = millis();
+  if (currentTime - lastDetectionTime > debounceDelay) {
+    oddCount++;
+    lastDetectionTime = currentTime;
+  }
+}
+
 void initializeLCD()
 
  {
@@ -28,15 +63,18 @@ void initializeLCD()
   lcd.backlight();
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Count:");
+  lcd.print("Total PKR:");
  }
 
 void initializeSensors() {
   for (int i = 0; i < numSensors; i++) 
   {
     pinMode(sensorDigitalPins[i], INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[i]), countObject, FALLING); // Trigger on falling edge
   }
+  attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[0]), count5PKRCoin, FALLING);
+  attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[1]), count2PKRCoin, FALLING);
+  attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[2]), count10PKRCoin, FALLING);
+  attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[3]), countOddCoin, FALLING);
 }
 
 void updateLCD() 
@@ -45,7 +83,10 @@ void updateLCD()
   lcd.setCursor(6, 0);
   lcd.print("    ");
   lcd.setCursor(6, 0);
-  lcd.print(count);
+  lcd.print(totalPKR);
+  lcd.setCursor(0, 1);
+  lcd.print("Odd: ");
+  lcd.print(oddCount);
 }
 
 void checkDigitalSensors() 
@@ -56,7 +97,20 @@ void checkDigitalSensors()
     int sensorDigitalValue = digitalRead(sensorDigitalPins[i]);
     if (sensorDigitalValue == LOW) 
     {
-      countObject();
+      switch (i) {
+        case 0:
+          count5PKRCoin();
+          break;
+        case 1:
+          count2PKRCoin();
+          break;
+        case 2:
+          count10PKRCoin();
+          break;
+        case 3:
+          countOddCoin();
+          break;
+      }
     }
   }
 }
@@ -75,8 +129,10 @@ void printSensorStates()
     Serial.print(sensorDigitalValue);
     Serial.print(" | ");
   }
-  Serial.print("Count: ");
-  Serial.print(count);
+  Serial.print("Total PKR: ");
+  Serial.print(totalPKR);
+  Serial.print(" | Odd Count: ");
+  Serial.print(oddCount);
   //delay(1); 
  }
 
