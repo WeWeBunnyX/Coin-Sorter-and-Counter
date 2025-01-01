@@ -10,10 +10,10 @@ const int numSensors = 4;
 volatile int count = 0; 
 volatile unsigned long lastDetectionTime[] = {0, 0, 0, 0}; // Separate last detection times for each sensor
 
-const unsigned long debounceDelay5PKR = 40; // Debounce delay for 5 PKR coin
-const unsigned long debounceDelay2PKR = 50; // Debounce delay for 2 PKR coin
-const unsigned long debounceDelay10PKR = 60; // Debounce delay for 10 PKR coin
-const unsigned long debounceDelayOdd = 70; // Debounce delay for odd coin
+const unsigned long debounceDelay5PKR = 100; 
+const unsigned long debounceDelay2PKR = 100; 
+const unsigned long debounceDelay10PKR = 100; 
+const unsigned long debounceDelayOdd = 100; 
 
 volatile int totalPKR = 0; 
 volatile int oddCount = 0; 
