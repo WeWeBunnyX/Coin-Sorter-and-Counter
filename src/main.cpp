@@ -8,67 +8,58 @@ const int sensorDigitalPins[] = {12, 11, 3, 8};
 const int numSensors = 4;
 
 volatile int count = 0; 
-volatile unsigned long lastDetectionTime = 0;
-const unsigned long debounceDelay = 40; // Increased debounce delay for better detection
+volatile unsigned long lastDetectionTime[] = {0, 0, 0, 0}; // Separate last detection times for each sensor
+
+const unsigned long debounceDelay5PKR = 40; // Debounce delay for 5 PKR coin
+const unsigned long debounceDelay2PKR = 50; // Debounce delay for 2 PKR coin
+const unsigned long debounceDelay10PKR = 60; // Debounce delay for 10 PKR coin
+const unsigned long debounceDelayOdd = 70; // Debounce delay for odd coin
 
 volatile int totalPKR = 0; 
 volatile int oddCount = 0; 
 
-void countObject()
- {
-  unsigned long currentTime = millis();
-  if (currentTime - lastDetectionTime > debounceDelay) 
-  {
-    count++;
-    lastDetectionTime = currentTime;
-  }
-}
-
 void count5PKRCoin() {
   unsigned long currentTime = millis();
-  if (currentTime - lastDetectionTime > debounceDelay) {
+  if (currentTime - lastDetectionTime[0] > debounceDelay5PKR) {
     totalPKR += 5;
-    lastDetectionTime = currentTime;
+    lastDetectionTime[0] = currentTime;
   }
 }
 
 void count2PKRCoin() {
   unsigned long currentTime = millis();
-  if (currentTime - lastDetectionTime > debounceDelay) {
+  if (currentTime - lastDetectionTime[1] > debounceDelay2PKR) {
     totalPKR += 2;
-    lastDetectionTime = currentTime;
+    lastDetectionTime[1] = currentTime;
   }
 }
 
 void count10PKRCoin() {
   unsigned long currentTime = millis();
-  if (currentTime - lastDetectionTime > debounceDelay) {
+  if (currentTime - lastDetectionTime[2] > debounceDelay10PKR) {
     totalPKR += 10;
-    lastDetectionTime = currentTime;
+    lastDetectionTime[2] = currentTime;
   }
 }
 
 void countOddCoin() {
   unsigned long currentTime = millis();
-  if (currentTime - lastDetectionTime > debounceDelay) {
+  if (currentTime - lastDetectionTime[3] > debounceDelayOdd) {
     oddCount++;
-    lastDetectionTime = currentTime;
+    lastDetectionTime[3] = currentTime;
   }
 }
 
-void initializeLCD()
-
- {
+void initializeLCD() {
   lcd.init();
   lcd.backlight();
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Total PKR:");
- }
+  lcd.print("PKR:");
+}
 
 void initializeSensors() {
-  for (int i = 0; i < numSensors; i++) 
-  {
+  for (int i = 0; i < numSensors; i++) {
     pinMode(sensorDigitalPins[i], INPUT_PULLUP);
   }
   attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[0]), count5PKRCoin, FALLING);
@@ -77,9 +68,7 @@ void initializeSensors() {
   attachInterrupt(digitalPinToInterrupt(sensorDigitalPins[3]), countOddCoin, FALLING);
 }
 
-void updateLCD() 
-
-{
+void updateLCD() {
   lcd.setCursor(6, 0);
   lcd.print("    ");
   lcd.setCursor(6, 0);
@@ -89,14 +78,10 @@ void updateLCD()
   lcd.print(oddCount);
 }
 
-void checkDigitalSensors() 
-
-{
-  for (int i = 0; i < numSensors; i++) 
-  {
+void checkDigitalSensors() {
+  for (int i = 0; i < numSensors; i++) {
     int sensorDigitalValue = digitalRead(sensorDigitalPins[i]);
-    if (sensorDigitalValue == LOW) 
-    {
+    if (sensorDigitalValue == LOW) {
       switch (i) {
         case 0:
           count5PKRCoin();
@@ -115,12 +100,10 @@ void checkDigitalSensors()
   }
 }
 
-void printSensorStates()
- {
+void printSensorStates() {
   Serial.print("\r"); 
 
-  for (int i = 0; i < numSensors; i++) 
-  {
+  for (int i = 0; i < numSensors; i++) {
     int sensorDigitalValue = digitalRead(sensorDigitalPins[i]);
   
     Serial.print("Sensor ");
@@ -134,20 +117,15 @@ void printSensorStates()
   Serial.print(" | Odd Count: ");
   Serial.print(oddCount);
   //delay(1); 
- }
+}
 
-
-
-void setup() 
-{
+void setup() {
   initializeLCD();
   Serial.begin(9600);
   initializeSensors();
 }
 
-
-void loop() 
-{
+void loop() {
   updateLCD();
   checkDigitalSensors();
   printSensorStates();
